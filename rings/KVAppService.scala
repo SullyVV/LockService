@@ -18,11 +18,9 @@ case class View(endpoints: Seq[ActorRef]) extends AppServiceAPI
 object KVAppService {
 
   def apply(system: ActorSystem, numNodes: Int, ackEach: Int): ActorRef = {
-
     /** Storage tier: create K/V store servers */
     val stores = for (i <- 0 until numNodes)
       yield system.actorOf(KVStore.props(), "RingStore" + i)
-
     /** Service tier: create app servers */
     val servers = for (i <- 0 until numNodes)
       yield system.actorOf(RingServer.props(i, numNodes, stores, ackEach), "RingServer" + i)
