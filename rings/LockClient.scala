@@ -17,21 +17,16 @@ class LockClient (var server: ActorRef, var myRef: ActorRef, var timeStep: Long)
     case Reclaim(msg) =>
       // the only case where client get
       reclaim(msg)
-    case Disconnect() =>
-      // server sends me a disconnect, so dont reply anything until i get a connect
-      disconnect = true
-    case Connect() =>
-      disconnect = false
   }
   private def reclaim(recMsg: RecMsg) = {
     if (cache(recMsg.file).timestamp < System.currentTimeMillis() || cache(recMsg.file).used == false) {
       // in this situation, it is already expired, clean directly
       // or application using this lease has released, but is still cached in lock client
       cache.put(recMsg.file, new LeaseCondition(0, false))
-      server ! Reclaim(true)
+      server ! new AckMsg(recMsg.file, System.currentTimeMillis(), true)
     } else  {
       // in this case, application is still using the lease
-      server ! Reclaim(false)
+      server ! new AckMsg(recMsg.file, System.currentTimeMillis(), false)
     }
   }
 
@@ -40,13 +35,12 @@ class LockClient (var server: ActorRef, var myRef: ActorRef, var timeStep: Long)
     if (cache.contains(acqMsg.file) && cache(acqMsg.file).timestamp < System.currentTimeMillis()) {
       // in this case we have cached the lease and it is still valid, so we dont have to consult the server.
       return acqMsg.file;
-     // do nothing but prints out
     } else {
       val future = ask(server, Acquire(acqMsg))
-      val done = Await.result(future, 60 seconds)
+      val done = Await.result(future, 5 seconds).asInstanceOf[AckMsg]
       if (done.made == true) {
         // if server agrees the lease, update its cache
-        cache.put(acqMsg.file, new LeaseCondition(acqMsg.timestamp + acqMsg.period, true))
+        cache.put(acqMsg.file, new LeaseCondition(done.timestamp, true))
         return acqMsg.file
       } else {
         // else, do nothing
@@ -55,19 +49,22 @@ class LockClient (var server: ActorRef, var myRef: ActorRef, var timeStep: Long)
 
     }
   }
-  private def renewLease(renMsg: RenMsg) = {
+  private def renewLease(file: String, time: Long): Boolean = {
     // use ask pattern, same reason as above
+    val renMsg = new RenMsg(file, myRef, time)
     val future = ask(server, Renew(renMsg))
-    val done = Await.result(future, 60 seconds)
-    if (done == true) {
-      var timestamp = cache(renMsg.file).timestamp
-      timestamp = timestamp + timeStep
-      cache.put(renMsg.file, new LeaseCondition(timestamp, true))
+    val done = Await.result(future, 5 seconds).asInstanceOf[AckMsg]
+    if (done.made == true) {
+      cache.put(done.file, new LeaseCondition(done.timestamp, true))
+      return true
+    } else {
+      return false
     }
   }
-  private def releaseLease(relMsg: RelMsg) = {
+
+  private def releaseLease(file: String) = {
     // application want me to release, but i actually cache it, if someone ask for it, i give them this lease
-    cache(relMsg.file).used = false
+    cache(file).used = false
   }
 }
 
