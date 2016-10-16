@@ -18,7 +18,6 @@ case class Join() extends LoadMasterAPI
   * @param servers ActorRefs for the actors/servers in the app tier
   * @param burstSize How many commands per burst
   */
-
 class LoadMaster (val numNodes: Int, val servers: Seq[ActorRef], val burstSize: Int) extends Actor {
   val log = Logging(context.system, this)
   var active: Boolean = true

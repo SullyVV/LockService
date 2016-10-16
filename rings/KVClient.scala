@@ -15,7 +15,6 @@ class AnyMap extends scala.collection.mutable.HashMap[BigInt, Any]
  * in the store are of type Any: it is up to the client app to cast to/from the app's value types.
  * @param stores ActorRefs for the KVStore actors to use as storage servers.
  */
-
 class KVClient (stores: Seq[ActorRef]) {
   private val cache = new AnyMap
   implicit val timeout = Timeout(5 seconds)

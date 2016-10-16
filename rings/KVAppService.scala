@@ -6,7 +6,13 @@ sealed trait AppServiceAPI
 case class Prime() extends AppServiceAPI
 case class Command() extends AppServiceAPI
 case class View(endpoints: Seq[ActorRef]) extends AppServiceAPI
-
+case class Acquire(message: AcqMsg) extends AppServiceAPI
+case class Renew(t: RenMsg) extends AppServiceAPI
+case class AckAcq(ack: AckMsg) extends AppServiceAPI
+case class AckRel(ack: AckMsg) extends AppServiceAPI
+case class AckRen(ack: AckMsg) extends AppServiceAPI
+case class Reclaim(reclaim: RecMsg) extends AppServiceAPI
+case class Release(relMsg: RelMsg) extends AppServiceAPI
 /**
  * This object instantiates the service tiers and a load-generating master, and
  * links all the actors together by passing around ActorRef references.
