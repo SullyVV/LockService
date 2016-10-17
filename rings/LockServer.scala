@@ -12,64 +12,84 @@ import scala.util.Random
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.collection.mutable
-class Ownership(var rqst: ActorRef, var timestamp: Long)
-class AckMsg(var file: String, var timestamp: Long, var made: Boolean)
-class RecMsg(var file: String)
-class AcqMsg(var file: String, var rqst: ActorRef)
-class RenMsg(var file: String, var rqst: ActorRef, var T: Long)
+class Ownership(var clientId: Int, var timestamp: Long)
+class AckMsg(var clientId: Int, var file: String, var timestamp: Long, var made: Boolean)
+class RecMsg(var file: String, var timestamp: Long)
+class AcqMsg(var file: String, var clientId: Int, var timestamp: Long)
+class RenMsg(var file: String, var clientId: Int, var T: Long)
+class ReleaseMsg(var file: String, var clientId: Int, var T: Long)
 
 //class RingServer (val myNodeID: Int, val numNodes: Int, storeServers: Seq[ActorRef], burstSize: Int) extends Actor {
-class LockServer (var myself: ActorRef, var lockClient: Seq[ActorRef], var T: Long) extends Actor {
+class LockServer ( var T: Long) extends Actor {
   // use a table to store filename and its ownership
+  implicit val timeout = Timeout(60 seconds)
   val itime = T
   private val store = new scala.collection.mutable.HashMap[String, Ownership]
   val log = Logging(context.system, this)
+  var table: Option[Seq[ActorRef]] = None
   def receive() = {
+    case Init() =>
+      init()
     case Acquire(msg) =>
       assign(msg)
     case Renew(msg) =>
       renew(msg)
-
-    // actually no release request to server, client functions as a middleware
+    case ViewClient(e) =>
+      table = Some(e)
   }
   private def check() = {
     // in this function we check every lease periodcally, if expires, we update our store and reclaim the lease from client
     // use scheduller
+    // we have to think about this later, maybe ask someone
   }
 
+  private def init() = {
+    // init 1 file for test use
+    store.put("file1", new Ownership(-1, 0))
+    store.put("file2", new Ownership(-1, 0))
+//    val future = ask(table.get(0), Test())
+//    val done = Await.result(future, timeout.duration).asInstanceOf[String]
+//    println(done)
+    //println("init finished")
+  }
 
   private def assign(msg: AcqMsg) = {
-    if (!store.contains(msg.file)) {
+    val endpoints = table.get
+    if (store(msg.file).clientId == -1) {
       // lease is empty, so use directly
-      store.put(msg.file, new Ownership(msg.rqst, System.currentTimeMillis() + itime))
-      msg.rqst ! new AckMsg(msg.file, store(msg.file).timestamp,true)
-    } else if (store.contains(msg.file) && store(msg.file).timestamp > System.currentTimeMillis()){
-      // old lease still valid, deny requester, check to see if lease is still in use
-      val future = ask(store(msg.file).rqst, Reclaim(new RecMsg(msg.file)))
-      val ackmsg = Await.result(future, 5 seconds).asInstanceOf[AckMsg]
+      store.put(msg.file, new Ownership(msg.clientId, System.currentTimeMillis() + itime))
+
+      sender() ! new AckMsg(-1, msg.file, store(msg.file).timestamp,true)
+      //endpoints(msg.clientId) ! new AckMsg(msg.file, store(msg.file).timestamp,true)
+    } else if (store(msg.file).clientId != -1 && store(msg.file).timestamp > msg.timestamp){
+      // old lease still valid, check to see if lease is still in use
+      val future = ask(endpoints(store(msg.file).clientId), Reclaim(new RecMsg(msg.file, msg.timestamp)))
+      val ackmsg = Await.result(future, timeout.duration).asInstanceOf[AckMsg]
       if (ackmsg.made == true) {
         // if lease not in use, assign it
-        store.put(msg.file, new Ownership(msg.rqst, System.currentTimeMillis() + itime))
-        msg.rqst ! new AckMsg(msg.file, store(msg.file).timestamp, true)
+        println("reclaim successful")
+        store.put(msg.file, new Ownership(msg.clientId, System.currentTimeMillis() + itime))
+        sender() ! new AckMsg(-1, msg.file, store(msg.file).timestamp, true)
       } else {
         // if lease in use, deny request
-        msg.rqst ! new AckMsg(msg.file, store(msg.file).timestamp, false)
+        sender() ! new AckMsg(-1, msg.file, store(msg.file).timestamp, false)
       }
     } else {
       // old lease expired and no renewal, allow requester and update
-      store.put(msg.file, new Ownership(msg.rqst, System.currentTimeMillis() + itime))
-      msg.rqst ! new AckMsg(msg.file, System.currentTimeMillis() + itime,true)
+      store.put(msg.file, new Ownership(msg.clientId, System.currentTimeMillis() + itime))
+      sender() ! new AckMsg(-1, msg.file, System.currentTimeMillis() + itime,true)
     }
   }
+
   private def renew(msg: RenMsg) = {
     // when a renew request coming in, server update file's lease and ack true
     store(msg.file).timestamp += msg.T
-    msg.rqst ! new AckMsg(msg.file, System.currentTimeMillis(), true)
+    sender() ! new AckMsg(-1, msg.file, System.currentTimeMillis(), true)
   }
 }
 
 object LockServer{
-  def props(mySelf: ActorRef,lockClient: Seq[ActorRef]): Props = {
-    Props(classOf[LockServer], mySelf, lockClient)
+  def props( T: Long): Props = {
+    Props(classOf[LockServer], T)
   }
 }

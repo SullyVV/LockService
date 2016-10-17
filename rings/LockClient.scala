@@ -5,60 +5,80 @@ import scala.concurrent.{Await, Future}
 import akka.pattern.ask
 import scala.concurrent.duration._
 import scala.concurrent.Await
+import akka.util.Timeout
 // for cached lease, we have to mark whether it is actually being used, if yes, cannot be reclaimed before expire
 // if not, can be reclaimed
 class LeaseCondition (var timestamp: Long, var used: Boolean)
-class LockClient (var server: ActorRef, var myRef: ActorRef, var timeStep: Long) extends Actor {
+class LockClient (val clientId: Int, var timeStep: Long) extends Actor {
   // use a table to store filename and lease time
   private val cache = new scala.collection.mutable.HashMap[String, LeaseCondition]
+  implicit val timeout = Timeout(60 seconds)
   val log = Logging(context.system, this)
   var disconnect = false
+  var server: Option[ActorRef] = None
+  var stats = new Stats
   def receive() = {
+    case Take(file) =>
+      acqLease(file)
     case Reclaim(msg) =>
       // the only case where client get
       reclaim(msg)
+    case ViewServer(e) =>
+      //println("get server info")
+      server = Some(e)
+    case Release(file) =>
+      releaseLease(file)
+    case AppRenew(file) =>
+      renewLease(file)
   }
   private def reclaim(recMsg: RecMsg) = {
-    if (cache(recMsg.file).timestamp < System.currentTimeMillis() || cache(recMsg.file).used == false) {
+    val s = server.get
+    val timestamp = cache(recMsg.file).timestamp
+    val requiredtimestamp = recMsg.timestamp
+    val currenttime = System.currentTimeMillis()
+    if (cache(recMsg.file).timestamp < recMsg.timestamp || cache(recMsg.file).used == false) {
       // in this situation, it is already expired, clean directly
       // or application using this lease has released, but is still cached in lock client
       cache.put(recMsg.file, new LeaseCondition(0, false))
-      server ! new AckMsg(recMsg.file, System.currentTimeMillis(), true)
+      sender() ! new AckMsg(clientId, recMsg.file, System.currentTimeMillis(), true)
     } else  {
       // in this case, application is still using the lease
-      server ! new AckMsg(recMsg.file, System.currentTimeMillis(), false)
+      sender() ! new AckMsg(clientId, recMsg.file, System.currentTimeMillis(), false)
     }
   }
 
-  private def acqLease(acqMsg: AcqMsg): String= {
+  private def acqLease(file: String) {
     // here we have to use ask, because we must hold and wait until we really get the lease
+    val s = server.get
+    val acqMsg = new AcqMsg(file, clientId, System.currentTimeMillis())
     if (cache.contains(acqMsg.file) && cache(acqMsg.file).timestamp < System.currentTimeMillis()) {
       // in this case we have cached the lease and it is still valid, so we dont have to consult the server.
-      return acqMsg.file;
+      println(s"client $clientId success")
     } else {
-      val future = ask(server, Acquire(acqMsg))
-      val done = Await.result(future, 5 seconds).asInstanceOf[AckMsg]
+      val future = ask(s, Acquire(acqMsg))
+      val done = Await.result(future, timeout.duration).asInstanceOf[AckMsg]
       if (done.made == true) {
         // if server agrees the lease, update its cache
         cache.put(acqMsg.file, new LeaseCondition(done.timestamp, true))
-        return acqMsg.file
+        println(s"client $clientId success")
       } else {
         // else, do nothing
-        return "failed"
+        println(s"client $clientId failed")
       }
 
     }
   }
-  private def renewLease(file: String, time: Long): Boolean = {
+  private def renewLease(file: String) = {
     // use ask pattern, same reason as above
-    val renMsg = new RenMsg(file, myRef, time)
-    val future = ask(server, Renew(renMsg))
-    val done = Await.result(future, 5 seconds).asInstanceOf[AckMsg]
+    val s = server.get
+    val renMsg = new RenMsg(file, clientId, timeStep)
+    val future = ask(s, Renew(renMsg))
+    val done = Await.result(future, timeout.duration).asInstanceOf[AckMsg]
     if (done.made == true) {
       cache.put(done.file, new LeaseCondition(done.timestamp, true))
-      return true
+      println(s"client $clientId renew success")
     } else {
-      return false
+      println(s"client $clientId renew failed")
     }
   }
 
@@ -69,7 +89,7 @@ class LockClient (var server: ActorRef, var myRef: ActorRef, var timeStep: Long)
 }
 
 object LockClient {
-  def props(server: ActorRef, myRef: ActorRef, timeStep: Long): Props = {
-    Props(classOf[LockClient], server, myRef, timeStep)
+  def props(clientId: Int, timeStep: Long): Props = {
+    Props(classOf[LockClient], clientId, timeStep)
   }
 }
