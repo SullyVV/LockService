@@ -52,13 +52,10 @@ object TestHarness {
       //lockClients(0) ! AppRenew("file1")
       Thread.sleep(50)
       lockClients(1) ! Take("file1")
-      Thread.sleep(2000)
+      Thread.sleep(5000)
       lockClients(0) ! AppRenew("file1")
-      Thread.sleep(10)
+      Thread.sleep(5000)
       lockClients(1) ! Take("file1")
-
-      //lockClients(1) ! Take("file1")
-
       system.shutdown()
     }
 

@@ -58,12 +58,11 @@ class LockServer ( var T: Long) extends Actor {
     if (store(msg.file).clientId == -1) {
       // lease is empty, so use directly
       store.put(msg.file, new Ownership(msg.clientId, System.currentTimeMillis() + itime))
-
       sender() ! new AckMsg(-1, msg.file, store(msg.file).timestamp,true)
       //endpoints(msg.clientId) ! new AckMsg(msg.file, store(msg.file).timestamp,true)
-    } else if (store(msg.file).clientId != -1 && store(msg.file).timestamp > msg.timestamp){
+    } else if (store(msg.file).clientId != -1 && store(msg.file).timestamp > System.currentTimeMillis()){
       // old lease still valid, check to see if lease is still in use
-      val future = ask(endpoints(store(msg.file).clientId), Reclaim(new RecMsg(msg.file, msg.timestamp)))
+      val future = ask(endpoints(store(msg.file).clientId), Reclaim(new RecMsg(msg.file, System.currentTimeMillis())))
       val ackmsg = Await.result(future, timeout.duration).asInstanceOf[AckMsg]
       if (ackmsg.made == true) {
         // if lease not in use, assign it
@@ -84,7 +83,7 @@ class LockServer ( var T: Long) extends Actor {
   private def renew(msg: RenMsg) = {
     // when a renew request coming in, server update file's lease and ack true
     store(msg.file).timestamp += msg.T
-    sender() ! new AckMsg(-1, msg.file, System.currentTimeMillis(), true)
+    sender() ! new AckMsg(-1, msg.file, store(msg.file).timestamp, true)
   }
 }
 

@@ -32,7 +32,6 @@ class LockClient (val clientId: Int, var timeStep: Long) extends Actor {
       renewLease(file)
   }
   private def reclaim(recMsg: RecMsg) = {
-    val s = server.get
     val timestamp = cache(recMsg.file).timestamp
     val requiredtimestamp = recMsg.timestamp
     val currenttime = System.currentTimeMillis()
@@ -50,16 +49,15 @@ class LockClient (val clientId: Int, var timeStep: Long) extends Actor {
   private def acqLease(file: String) {
     // here we have to use ask, because we must hold and wait until we really get the lease
     val s = server.get
-    val acqMsg = new AcqMsg(file, clientId, System.currentTimeMillis())
-    if (cache.contains(acqMsg.file) && cache(acqMsg.file).timestamp < System.currentTimeMillis()) {
+    if (cache.contains(file) && cache(file).timestamp < System.currentTimeMillis()) {
       // in this case we have cached the lease and it is still valid, so we dont have to consult the server.
       println(s"client $clientId success")
     } else {
-      val future = ask(s, Acquire(acqMsg))
+      val future = ask(s, Acquire(new AcqMsg(file, clientId, System.currentTimeMillis())))
       val done = Await.result(future, timeout.duration).asInstanceOf[AckMsg]
       if (done.made == true) {
         // if server agrees the lease, update its cache
-        cache.put(acqMsg.file, new LeaseCondition(done.timestamp, true))
+        cache.put(file, new LeaseCondition(done.timestamp, true))
         println(s"client $clientId success")
       } else {
         // else, do nothing
@@ -70,9 +68,8 @@ class LockClient (val clientId: Int, var timeStep: Long) extends Actor {
   }
   private def renewLease(file: String) = {
     // use ask pattern, same reason as above
-    val s = server.get
     val renMsg = new RenMsg(file, clientId, timeStep)
-    val future = ask(s, Renew(renMsg))
+    val future = ask(server.get, Renew(renMsg))
     val done = Await.result(future, timeout.duration).asInstanceOf[AckMsg]
     if (done.made == true) {
       cache.put(done.file, new LeaseCondition(done.timestamp, true))
@@ -84,6 +81,7 @@ class LockClient (val clientId: Int, var timeStep: Long) extends Actor {
 
   private def releaseLease(file: String) = {
     // application want me to release, but i actually cache it, if someone ask for it, i give them this lease
+    println(s"client $clientId release $file")
     cache(file).used = false
   }
 }
