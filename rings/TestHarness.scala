@@ -38,7 +38,7 @@ object TestHarness {
     val lockServer = system.actorOf(LockServer.props(10000), "lockServer")
 
     val lockClients = for (i <- 0 until 2)
-      yield system.actorOf(LockClient.props(i, 10000), "lockClient" + i)
+      yield system.actorOf(LockClient.props(i, lockServer, 10000), "lockClient" + i)
 
 
     def main(args: Array[String]): Unit = run()
@@ -50,14 +50,26 @@ object TestHarness {
       lockServer ! Init()
       lockClients(0) ! Take("file1")
       //lockClients(0) ! AppRenew("file1")
+
       Thread.sleep(50)
+      lockServer ! Disconnect(1, 2000)
       lockClients(1) ! Take("file1")
       Thread.sleep(5000)
       lockClients(0) ! AppRenew("file1")
       Thread.sleep(5000)
       lockClients(1) ! Take("file1")
+
+      // TODO: server.disconnect(clientID, timeOut)
+
+
       system.shutdown()
     }
+
+  /**
+    * server.disconnect(clientID, timeOut) server "discard" all msg from clientID
+    * clientID retry msg to server until get ack
+    */
+
 
 
 

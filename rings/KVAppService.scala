@@ -12,6 +12,8 @@ case class Init() extends AppServiceAPI
 case class ViewServer(server: ActorRef) extends AppServiceAPI
 case class Acquire(message: AcqMsg) extends AppServiceAPI
 case class Renew(renew: RenMsg) extends AppServiceAPI
+case class Disconnect(clientId: Int, timeLength: Long) extends AppServiceAPI
+case class Reconnect(clientId: Int) extends AppServiceAPI
 case class AppRenew(file: String) extends AppServiceAPI
 case class Reclaim(reclaim: RecMsg) extends AppServiceAPI
 case class Test() extends AppServiceAPI
