@@ -49,6 +49,7 @@ class LockServer ( var T: Long) extends Actor {
     case ViewClient(e) =>
       clientsTable = Some(e)
   }
+
   private def check(): Unit = {
     // in this function we check every lease periodcally, if expires, we update our leaseTable and reclaim the lease from client
     // use scheduler

@@ -41,8 +41,8 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
   }
 
   private def reportLease(): Unit = {
-    val cachedFile = cache.keySet
-    sender() ! new ReportMsg(clientId, cachedFile)
+    val cachedFiles = cache.keySet
+    sender() ! new ReportMsg(clientId, cachedFiles)
   }
 
   private def reclaim(recMsg: RecMsg) : Unit = {
@@ -56,7 +56,8 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
     if (timestamp < requiredTimestamp || cache(recMsg.fileName).used == false) {
       // In this situation, it is already expired, clean directly
       // or application using this lease has released, but is still cached in lock client
-      cache.put(recMsg.fileName, new LeaseCondition(0, false))
+      // cache.put(recMsg.fileName, new LeaseCondition(0, false))
+      cache.remove(recMsg.fileName)
       sender() ! new AckMsg(clientId, recMsg.fileName, System.currentTimeMillis(), true)
     } else  {
       // in this case, application is still using the lease
@@ -94,19 +95,28 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
 
   /**
     * client renews lease
+    *
     * @param fileName
     */
   private def renewLease(fileName: String) = {
     // use ask pattern, same reason as above
     if (cache.get(fileName).isDefined) {
       val renMsg = new RenMsg(fileName, clientId, timeStep)
-      val future = ask(server, Renew(renMsg))
-      val done = Await.result(future, timeout.duration).asInstanceOf[AckMsg]
-      if (done.result == true) {
-        cache.put(done.fileName, new LeaseCondition(done.timestamp, false))
-        println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId renew success")
-      } else {
-        println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId renew failed")
+      try {
+        val future = ask(server, Renew(renMsg))
+        val done = Await.result(future, timeout.duration).asInstanceOf[AckMsg]
+        if (done.result == true) {
+          cache.put(done.fileName, new LeaseCondition(done.timestamp, false))
+          println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId renew success")
+        } else {
+          println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId renew failed")
+        }
+      } catch {
+        case timeout : TimeoutException => println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    " + s"\033[31mclient $clientId timeout\033[0m" + s": renew $fileName's lease")
+        case e: Exception => {
+          e.printStackTrace()
+          println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId unknown exception")
+        }
       }
     } else {
       println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId wants to renew $fileName which is not belong to it")
