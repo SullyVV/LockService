@@ -5,6 +5,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import java.security.Timestamp
 import java.text.SimpleDateFormat
+import java.util
 import java.util.Date
 
 import ExecutionContext.Implicits.global
@@ -18,6 +19,7 @@ import scala.concurrent.duration._
 import scala.collection.mutable
 class Ownership(var clientId: Int, var timestamp: Long)
 class AckMsg(var clientId: Int, var fileName: String, var timestamp: Long, var result: Boolean)
+class ReportMsg(var clientId: Int, var cachedLease: scala.collection.Set[String])
 class RecMsg(var fileName: String, var timestamp: Long)
 class AcqMsg(var fileName: String, var clientId: Int, var timestamp: Long)
 class RenMsg(var fileName: String, var clientId: Int, var T: Long)
@@ -51,6 +53,18 @@ class LockServer ( var T: Long) extends Actor {
     // in this function we check every lease periodcally, if expires, we update our leaseTable and reclaim the lease from client
     // use scheduler
     // we have to think about this later, maybe ask someone
+    val clients = clientsTable.get
+
+    for (i <- 0 until clients.length) {
+      val future = ask(clients(i), ReportLease())
+      val reportMsg = Await.result(future, timeout.duration).asInstanceOf[ReportMsg]
+      val currentClient = reportMsg.clientId
+      reportMsg.cachedLease.foreach((str: String) => {
+        if (leaseTable(str).clientId != currentClient) {
+          println(s"\033[32mError: check mutual exclusion! client $currentClient hold $str which belongs to client ${leaseTable(str).clientId}\033[0m")
+        }
+      })
+    }
   }
 
   /**
@@ -73,6 +87,8 @@ class LockServer ( var T: Long) extends Actor {
     }
     val clients = clientsTable.get
     // No client occupies this lease, grant to the requester directly
+    // fixme: debug println
+    println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client ${acqMsg.clientId} ask ${acqMsg.fileName} lease which is on client ${leaseTable(acqMsg.fileName).clientId}")
     if (leaseTable(acqMsg.fileName).clientId == -1) {
       leaseTable.put(acqMsg.fileName, new Ownership(acqMsg.clientId, System.currentTimeMillis() + itime))
       sender() ! new AckMsg(-1, acqMsg.fileName, leaseTable(acqMsg.fileName).timestamp, true)
@@ -84,7 +100,7 @@ class LockServer ( var T: Long) extends Actor {
       val ackMsg = Await.result(future, timeout.duration).asInstanceOf[AckMsg]
       // if lease not in use, assign it
       if (ackMsg.result == true) {
-        println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : client ${ackMsg.clientId} release ${ackMsg.fileName} lease. reclaim successful!")
+        println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client ${ackMsg.clientId} release ${ackMsg.fileName} lease. reclaim successful!")
         leaseTable.put(acqMsg.fileName, new Ownership(acqMsg.clientId, System.currentTimeMillis() + itime))
         sender() ! new AckMsg(-1, acqMsg.fileName, leaseTable(acqMsg.fileName).timestamp, true)
       }
@@ -116,19 +132,19 @@ class LockServer ( var T: Long) extends Actor {
       sender() ! new AckMsg(-1, msg.fileName, leaseTable(msg.fileName).timestamp, true)
     } else {
       sender() ! new AckMsg(-1, msg.fileName, leaseTable(msg.fileName).timestamp, false)
-      println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : client${msg.clientId} request new file${msg.fileName} lease, which is not belong to it")
+      println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client${msg.clientId} request new file${msg.fileName} lease, which is not belong to it")
     }
   }
 
   private def disconnect(clientId: Int, timeLength: Long): Unit = {
     disconnectTable.put(clientId, System.currentTimeMillis() + timeLength)
-    println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : client $clientId disconnected!")
+    println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId disconnected!")
     context.system.scheduler.scheduleOnce(timeLength.millis, self, Reconnect(clientId))
   }
 
   private def reconnect(clientId: Int): Unit = {
     disconnectTable.remove(clientId)
-    println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : client $clientId reconnected!")
+    println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId reconnected!")
   }
 }
 

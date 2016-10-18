@@ -45,32 +45,27 @@ object TestHarness {
 
     def run(): Unit = {
       lockServer ! ViewClient(lockClients)
-      for (client <- lockClients)
-        client ! ViewServer(lockServer)
       lockServer ! Init()
-      lockClients(0) ! Take("file1")
-      //lockClients(0) ! AppRenew("file1")
 
+      /**
+        * Simulate App's Operations
+        * lockClients ! AskLease(fileName)
+        * lockClients ! ReleaseLease(fileName)
+        *
+        * lockServer ! Disconnect(clientId, timeLength)
+        */
+
+      lockClients(0) ! AskLease("file1")
       Thread.sleep(50)
-      lockServer ! Disconnect(1, 2000)
-      lockClients(1) ! Take("file1")
+      lockServer ! Disconnect(1, 5000)
+      lockClients(1) ! AskLease("file1")
       Thread.sleep(5000)
-      lockClients(0) ! AppRenew("file1")
-      Thread.sleep(5000)
-      lockClients(1) ! Take("file1")
-
-      // TODO: server.disconnect(clientID, timeOut)
-
+      lockClients(0) ! ReleaseLease("file1")
+      Thread.sleep(2000)
+      lockClients(0) ! AskLease("file1")
+      Thread.sleep(2000)
+      lockClients(1) ! AskLease("file1")
 
       system.shutdown()
     }
-
-  /**
-    * server.disconnect(clientID, timeOut) server "discard" all msg from clientID
-    * clientID retry msg to server until get ack
-    */
-
-
-
-
 }

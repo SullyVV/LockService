@@ -7,15 +7,17 @@ case class Prime() extends AppServiceAPI
 case class Command() extends AppServiceAPI
 case class ViewClient(endpoints: Seq[ActorRef]) extends AppServiceAPI
 case class View(endpoints: Seq[ActorRef]) extends AppServiceAPI
-case class Take(file: String) extends AppServiceAPI
+case class AskLease(file: String) extends AppServiceAPI
 case class Init() extends AppServiceAPI
 case class ViewServer(server: ActorRef) extends AppServiceAPI
 case class Acquire(message: AcqMsg) extends AppServiceAPI
 case class Renew(renew: RenMsg) extends AppServiceAPI
 case class Disconnect(clientId: Int, timeLength: Long) extends AppServiceAPI
 case class Reconnect(clientId: Int) extends AppServiceAPI
+case class ReleaseLease(file: String) extends AppServiceAPI
 case class AppRenew(file: String) extends AppServiceAPI
 case class Reclaim(reclaim: RecMsg) extends AppServiceAPI
+case class ReportLease() extends  AppServiceAPI
 case class Test() extends AppServiceAPI
 case class Release(file: String) extends AppServiceAPI
 /**
