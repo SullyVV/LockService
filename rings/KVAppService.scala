@@ -19,7 +19,7 @@ case class ReleaseLease(file: String) extends AppServiceAPI
 case class AppRenew(file: String) extends AppServiceAPI
 case class RenewCheck() extends AppServiceAPI
 case class Reclaim(reclaim: RecMsg) extends AppServiceAPI
-case class ReportLease() extends  AppServiceAPI
+case class ReportLease(fileName: String) extends  AppServiceAPI
 case class Test() extends AppServiceAPI
 case class Release(file: String) extends AppServiceAPI
 /**

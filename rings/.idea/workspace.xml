@@ -2,6 +2,22 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ad23c580-8132-468f-ad17-ad9adf4e59b1" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockServer$$anonfun$rings$LockServer$$check$1$$anonfun$apply$1.class" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient$$anonfun$receive$1.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient$$anonfun$receive$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient$$anonfun$rings$LockClient$$renewCheck$1.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient$$anonfun$rings$LockClient$$renewCheck$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient$.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient$.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockServer$$anonfun$rings$LockServer$$check$1.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockServer$$anonfun$rings$LockServer$$check$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockServer$$anonfun$rings$LockServer$$init$1.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockServer$$anonfun$rings$LockServer$$init$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockServer$.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockServer$.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockServer.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockServer.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/ReportLease$.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/ReportLease$.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/ReportLease.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/ReportLease.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/ReportMsg.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/ReportMsg.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/TestHarness$$anonfun$quitProcess$1.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/TestHarness$$anonfun$quitProcess$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/TestHarness$$anonfun$run$1.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/TestHarness$$anonfun$run$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/TestHarness$.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/TestHarness$.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/KVAppService.scala" afterPath="$PROJECT_DIR$/KVAppService.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/LockClient.scala" afterPath="$PROJECT_DIR$/LockClient.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/LockServer.scala" afterPath="$PROJECT_DIR$/LockServer.scala" />
@@ -47,18 +63,18 @@
       <file leaf-file-name="KVAppService.scala" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/KVAppService.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-90">
-              <caret line="17" column="11" selection-start-line="17" selection-start-column="11" selection-end-line="17" selection-end-column="11" />
+            <state relative-caret-position="180">
+              <caret line="20" column="11" selection-start-line="20" selection-start-column="11" selection-end-line="20" selection-end-column="11" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="TestHarness.scala" pinned="false" current-in-tab="false">
+      <file leaf-file-name="TestHarness.scala" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/TestHarness.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="350">
-              <caret line="111" column="40" selection-start-line="111" selection-start-column="35" selection-end-line="111" selection-end-column="40" />
+            <state relative-caret-position="455">
+              <caret line="98" column="22" selection-start-line="98" selection-start-column="22" selection-end-line="98" selection-end-column="22" />
               <folding>
                 <element signature="e#15#49#0" expanded="true" />
               </folding>
@@ -69,8 +85,8 @@
       <file leaf-file-name="LockServer.scala" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/LockServer.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="214">
-              <caret line="62" column="42" selection-start-line="62" selection-start-column="31" selection-end-line="62" selection-end-column="42" />
+            <state relative-caret-position="402">
+              <caret line="82" column="6" selection-start-line="82" selection-start-column="6" selection-end-line="82" selection-end-column="6" />
               <folding>
                 <element signature="e#14#37#0" expanded="true" />
               </folding>
@@ -78,11 +94,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="LockClient.scala" pinned="false" current-in-tab="true">
+      <file leaf-file-name="LockClient.scala" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/LockClient.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="184">
-              <caret line="52" column="37" selection-start-line="52" selection-start-column="37" selection-end-line="52" selection-end-column="37" />
+            <state relative-caret-position="1620">
+              <caret line="82" column="14" selection-start-line="82" selection-start-column="14" selection-end-line="82" selection-end-column="14" />
               <folding>
                 <element signature="e#14#47#0" expanded="true" />
               </folding>
@@ -111,8 +127,8 @@
         <option value="$PROJECT_DIR$/lockClient.scala" />
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/KVAppService.scala" />
-        <option value="$PROJECT_DIR$/LockServer.scala" />
         <option value="$PROJECT_DIR$/LockClient.scala" />
+        <option value="$PROJECT_DIR$/LockServer.scala" />
         <option value="$PROJECT_DIR$/TestHarness.scala" />
       </list>
     </option>
@@ -575,7 +591,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32937366" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3293979" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.31641087" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.31641087" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.257379" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -949,26 +965,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/KVAppService.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-90">
-          <caret line="17" column="11" selection-start-line="17" selection-start-column="11" selection-end-line="17" selection-end-column="11" />
+        <state relative-caret-position="180">
+          <caret line="20" column="11" selection-start-line="20" selection-start-column="11" selection-end-line="20" selection-end-column="11" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/TestHarness.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="350">
-          <caret line="111" column="40" selection-start-line="111" selection-start-column="35" selection-end-line="111" selection-end-column="40" />
-          <folding>
-            <element signature="e#15#49#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/LockServer.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="214">
-          <caret line="62" column="42" selection-start-line="62" selection-start-column="31" selection-end-line="62" selection-end-column="42" />
+        <state relative-caret-position="402">
+          <caret line="82" column="6" selection-start-line="82" selection-start-column="6" selection-end-line="82" selection-end-column="6" />
           <folding>
             <element signature="e#14#37#0" expanded="true" />
           </folding>
@@ -977,10 +983,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/LockClient.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="184">
-          <caret line="52" column="37" selection-start-line="52" selection-start-column="37" selection-end-line="52" selection-end-column="37" />
+        <state relative-caret-position="1620">
+          <caret line="82" column="14" selection-start-line="82" selection-start-column="14" selection-end-line="82" selection-end-column="14" />
           <folding>
             <element signature="e#14#47#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/TestHarness.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="455">
+          <caret line="98" column="22" selection-start-line="98" selection-start-column="22" selection-end-line="98" selection-end-column="22" />
+          <folding>
+            <element signature="e#15#49#0" expanded="true" />
           </folding>
         </state>
       </provider>

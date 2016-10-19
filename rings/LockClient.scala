@@ -40,8 +40,8 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
 
     case RenewCheck() =>
       renewCheck()
-    case ReportLease() =>
-      reportLease()
+    case ReportLease(file) =>
+      reportLease(file)
     case Reclaim(msg) =>
       // server calls clients
       reclaim(msg)
@@ -50,9 +50,16 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
   /***
     * Send back cached files list to server for mutual exclusion checking
     */
-  private def reportLease(): Unit = {
-    val cachedFiles = cache.clone()
-    sender() ! new ReportMsg(clientId, cachedFiles)
+  private def reportLease(file: String): Unit = {
+//    val cachedFiles = cache.clone()
+//    sender() ! new ReportMsg(clientId, cachedFiles)
+    if (cache.get(file).isEmpty) {
+      println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : Serious Error: client $clientId doesn't take $file lease")
+    } else {
+      val modiTimes = cache(file).modifiedTimes
+      cache.remove(file)
+      sender() ! new ReportMsg(clientId, file, modiTimes)
+    }
   }
 
   /***

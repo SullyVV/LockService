@@ -19,7 +19,7 @@ import scala.concurrent.duration._
 import scala.collection.mutable
 class Ownership(var clientId: Int, var timestamp: Long)
 class AckMsg(var clientId: Int, var fileName: String, var timestamp: Long, var result: Boolean)
-class ReportMsg(var clientId: Int, var cachedLease: scala.collection.mutable.HashMap[String, LeaseCondition])
+class ReportMsg(var clientId: Int, var fileName: String, var modifiedTimes: Int)
 class RecMsg(var fileName: String, var timestamp: Long)
 class RecAckMsg(var clientId: Int, var fileName: String, var modifiedTimes: Int, var timestamp: Long, var result: Boolean)
 class AcqMsg(var fileName: String, var clientId: Int, var timestamp: Long)
@@ -58,15 +58,39 @@ class LockServer ( var T: Long) extends Actor {
     * Server check mutual exclusive
     */
   private def check(): Unit = {
+    //Version1:
+//    val clients = clientsTable.get
+//    clients.foreach((client: ActorRef) => {
+//      val future = ask(client, ReportLease())
+//      val finalReport = Await.result(future, timeout.duration).asInstanceOf[ReportMsg]
+//      finalReport.cachedLease.foreach((pair: (String, LeaseCondition)) => {
+//        fileTable.put(pair._1, fileTable(pair._1) + pair._2.modifiedTimes)
+//      })
+//    })
+//    sender() ! fileTable
+// Version2:
     val clients = clientsTable.get
-    clients.foreach((client: ActorRef) => {
-      val future = ask(client, ReportLease())
-      val finalReport = Await.result(future, timeout.duration).asInstanceOf[ReportMsg]
-      finalReport.cachedLease.foreach((pair: (String, LeaseCondition)) => {
-        fileTable.put(pair._1, fileTable(pair._1) + pair._2.modifiedTimes)
-      })
+    leaseTable.foreach((fileOwner: (String, Ownership)) => {
+      if (fileOwner._2.clientId != -1) {
+        val fileName = fileOwner._1
+        val future = ask(clients(fileOwner._2.clientId), ReportLease(fileName))
+        val finalReport = Await.result(future, timeout.duration).asInstanceOf[ReportMsg]
+        if (finalReport.fileName != fileName) {
+          println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : \033[31mError: transmission error: diffrent file name\033[0m")
+        }
+        fileTable.put(fileName, fileTable(fileName) + finalReport.modifiedTimes)
+      }
     })
-    sender() ! fileTable
+    sender ! fileTable
+    //version3:
+
+//    val clients = clientsTable.get
+//    leaseTable.foreach((fileOwner: (String, Ownership)) => {
+//      if (fileOwner._2.clientId != -1) {
+//        val fileName = fileOwner._1
+//        val future = ask(clients(fileOwner._2.clientId), Reclaim(new RecMsg(fileName, System.currentTimeMillis())))
+//      }
+//    }
   }
 
   /***

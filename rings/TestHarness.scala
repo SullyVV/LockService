@@ -44,13 +44,13 @@ object TestHarness {
   val lockClients = for (i <- 0 until clientNum)
     yield system.actorOf(LockClient.props(i, lockServer, 10000), "lockClient" + i)
 
+  val rand = new scala.util.Random()
   /***
     * Set two schedulers, one for clients auto check; another one for server check
     */
-//  for (i <- 0 until clientNum) {
-//    system.scheduler.schedule(3 seconds, 5 seconds, lockClients(i), RenewCheck())
-//  }
-  //system.scheduler.schedule(4 seconds, 10 seconds, lockServer, Check())
+  for (i <- 0 until clientNum) {
+    system.scheduler.schedule(3 seconds, 5 seconds, lockClients(i), RenewCheck())
+  }
 
   def main(args: Array[String]): Unit = run()
 
@@ -61,64 +61,59 @@ object TestHarness {
     /***
       * Simulate App's Operations
       * lockClients ! AskLease(fileName)
-      * lockClients ! ReleaseLease(fileName)
       *
       * lockServer ! Disconnect(clientId, timeLength)
       */
 
-    lockClients(0) ! AskLease("file0")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(0) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file0")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(0) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file0")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(0) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file0")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(0) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file0")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file0")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(0) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file0")
-    Thread.sleep(5000)
+//    lockClients(0) ! AskLease("file0")
+//    Thread.sleep(50)
+//    lockClients(1) ! AskLease("file1")
+//    Thread.sleep(50)
+//    lockClients(0) ! AskLease("file1")
+//    Thread.sleep(50)
+//    lockClients(1) ! AskLease("file0")
+//    Thread.sleep(50)
+//    lockClients(0) ! AskLease("file0")
+//    Thread.sleep(50)
+//    lockClients(1) ! AskLease("file1")
+//    Thread.sleep(50)
+    val loopNum = 20
+    for (i <- 0 until loopNum) {
+      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+      Thread.sleep(500)
+      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+      Thread.sleep(500)
+      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+      Thread.sleep(500)
+      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+      Thread.sleep(500)
+      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+      Thread.sleep(500)
+      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+      Thread.sleep(500)
+      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+      Thread.sleep(500)
+      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+      Thread.sleep(500)
+      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+      Thread.sleep(500)
+      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+      Thread.sleep(5000)
+    }
+    var totalCall = 0
     try {
       val future = ask(lockServer, Check())
       val checkReport = Await.result(future, 60 second).asInstanceOf[scala.collection.mutable.HashMap[String, Int]]
       checkReport.foreach((pair: (String, Int)) => {
+        totalCall += pair._2
         println(s"${pair._1} = ${pair._2}")
       })
     } catch {
       case e : Exception => e.printStackTrace()
     }
-
+    println(s"totalCall = $totalCall")
     system.shutdown()
+    system.awaitTermination()
   }
 
   def quitProcess(): Unit = {
