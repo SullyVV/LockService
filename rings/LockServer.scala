@@ -39,7 +39,7 @@ class LockServer ( var T: Long) extends Actor {
     case Init() =>
       init()
     case Acquire(msg) =>
-      assign(msg)
+      acquire(msg)
     case Renew(msg) =>
       renew(msg)
     case Disconnect(clientID, timeLength) =>
@@ -91,10 +91,10 @@ class LockServer ( var T: Long) extends Actor {
 
 
   /***
-    * Server assign lease to the requested client (check availability)
+    * Server acquire lease to the requested client (check availability)
     * @param acqMsg
     */
-  private def assign(acqMsg: AcqMsg): Unit = {
+  private def acquire(acqMsg: AcqMsg): Unit = {
     if (disconnectTable.contains(acqMsg.clientId)) {
       return
     }
@@ -111,9 +111,9 @@ class LockServer ( var T: Long) extends Actor {
       // old lease still valid, check to see if lease is still in use
       val future = ask(clients(leaseTable(acqMsg.fileName).clientId), Reclaim(new RecMsg(acqMsg.fileName, System.currentTimeMillis())))
       val ackMsg = Await.result(future, timeout.duration).asInstanceOf[AckMsg]
-      // if lease not in use, assign it
+      // if lease not in use, acquire it
       if (ackMsg.result == true) {
-        println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client ${ackMsg.clientId} release ${ackMsg.fileName} lease. reclaim successful!")
+        println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client ${ackMsg.clientId} release ${ackMsg.fileName} lease. ${ackMsg.fileName} reclaim successful!")
         leaseTable.put(acqMsg.fileName, new Ownership(acqMsg.clientId, System.currentTimeMillis() + itime))
         sender() ! new AckMsg(-1, acqMsg.fileName, leaseTable(acqMsg.fileName).timestamp, true)
       }
@@ -127,7 +127,7 @@ class LockServer ( var T: Long) extends Actor {
       val future = ask(clients(leaseTable(acqMsg.fileName).clientId), Reclaim(new RecMsg(acqMsg.fileName, acqMsg.timestamp)))
       val ackMsg = Await.result(future, timeout.duration).asInstanceOf[AckMsg]
       if (ackMsg.result == false) {
-        println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : Error: Client${leaseTable(acqMsg.fileName).clientId} refuse release expired file${acqMsg.fileName} lease")
+        println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : \033[32mError: Client${leaseTable(acqMsg.fileName).clientId} refuse release expired file${acqMsg.fileName} lease\033[0m")
       }
       leaseTable.put(acqMsg.fileName, new Ownership(acqMsg.clientId, System.currentTimeMillis() + itime))
       sender() ! new AckMsg(-1, acqMsg.fileName, System.currentTimeMillis() + itime, true)

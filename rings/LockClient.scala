@@ -19,7 +19,7 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
   // use a table to store filename and lease time
   private val dateFormat = new SimpleDateFormat ("mm:ss")
   private val cache = new scala.collection.mutable.HashMap[String, LeaseCondition]
-  implicit val timeout = Timeout(8 seconds)
+  implicit val timeout = Timeout(5 seconds)
   val log = Logging(context.system, this)
   var disconnect = false
 //  var server: Option[ActorRef] = None
@@ -78,10 +78,12 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
       // In this situation, it is already expired, clean directly
       // or application using this lease has released, but is still cached in lock client
       // cache.put(recMsg.fileName, new LeaseCondition(0, false))
+      println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    Server reclaim ${recMsg.fileName} on client $clientId success")
       cache.remove(recMsg.fileName)
       sender() ! new AckMsg(clientId, recMsg.fileName, System.currentTimeMillis(), true)
     } else  {
       // in this case, application is still using the lease
+      println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    Server reclaim ${recMsg.fileName} on client $clientId fail")
       sender() ! new AckMsg(clientId, recMsg.fileName, System.currentTimeMillis(), false)
     }
   }
@@ -172,20 +174,20 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
   private def appAskLease(fileName: String): Unit = {
     // if the lease is in the cache: expired or not; but no other clients(apps) ask for it
     println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : Application $clientId asks for $fileName lease")
-    while (!(cache.get(fileName).isDefined && cache.get(fileName).get.timestamp > System.currentTimeMillis())) {
-      if (cache.get(fileName).isDefined) {
-        // if lease expired, renew it
-        if (cache.get(fileName).get.timestamp < System.currentTimeMillis()) {
-          renewLease(fileName)
-        } else {
-          println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : Application $clientId find $fileName lease in Cache")
-        }
-      }
-      // client doesn't cache the lease, acquire it from server
-      else {
-        acqLease(fileName)
+
+    if (cache.get(fileName).isDefined) {
+      // if lease expired, renew it
+      if (cache.get(fileName).get.timestamp < System.currentTimeMillis()) {
+        renewLease(fileName)
+      } else {
+        println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : Application $clientId find $fileName lease in Cache")
       }
     }
+    // client doesn't cache the lease, acquire it from server
+    else {
+      acqLease(fileName)
+    }
+
     // if get the lease success
     if (cache.get(fileName).isDefined && cache.get(fileName).get.timestamp > System.currentTimeMillis()) {
       cache.get(fileName).get.used = true
