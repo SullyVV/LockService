@@ -162,7 +162,8 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
       println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : Application on client $clientId release $fileName")
       cache(fileName).used = false
     } else {
-      println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : \033[32mApplication on client $clientId wants to release $fileName's lease which is not belong to it\033[0m")
+      //fixme: for test use: random release will invoke below print
+      //println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : \033[32mApplication on client $clientId wants to release $fileName's lease which is not belong to it\033[0m")
     }
   }
 

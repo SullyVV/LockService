@@ -63,9 +63,11 @@ object TestHarness {
       */
 
     lockClients(0) ! AskLease("file1")
+    Thread.sleep(50)
     lockClients(1) ! AskLease("file2")
     Thread.sleep(50)
-    //lockServer ! Disconnect(1, 5000)
+    lockServer ! Disconnect(1, 5000)
+    Thread.sleep(50)
     lockClients(1) ! ReleaseLease("file2")
     Thread.sleep(50)
     lockClients(0) ! AskLease("file2")
@@ -81,6 +83,13 @@ object TestHarness {
 //
 //    lockClients(1) ! AskLease("file1")
 
+
+    try {
+      val future = ask(lockServer, Check())
+      val checkReport = Await.result(future, 60 second).asInstanceOf[AckMsg]
+    } catch {
+      case e : Exception => e.printStackTrace()
+    }
 
     system.shutdown()
   }
