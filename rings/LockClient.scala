@@ -13,13 +13,20 @@ import scala.concurrent.duration._
 import akka.util.Timeout
 // for cached lease, we have to mark whether it is actually being used, if yes, cannot be reclaimed before expire
 // if not, can be reclaimed
-class LeaseCondition (var timestamp: Long, var used: Boolean)
+class LeaseCondition (var timestamp: Long, var used: Boolean, var modifiedTimes: Int) {
+//  val mtimestamp = timestamp
+//  val mused = used
+//  var mmodifiedTimes = modifiedTimes
+//  def getModifiedTime(): Int = {
+//    mmodifiedTimes
+//  }
+}
 
 class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extends Actor {
   // use a table to store filename and lease time
   private val dateFormat = new SimpleDateFormat ("mm:ss")
   private val cache = new scala.collection.mutable.HashMap[String, LeaseCondition]
-  implicit val timeout = Timeout(5 seconds)
+  implicit val timeout = Timeout(60 seconds)
   val log = Logging(context.system, this)
   var disconnect = false
 //  var server: Option[ActorRef] = None
@@ -44,7 +51,7 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
     * Send back cached files list to server for mutual exclusion checking
     */
   private def reportLease(): Unit = {
-    val cachedFiles = cache.keySet
+    val cachedFiles = cache.clone()
     sender() ! new ReportMsg(clientId, cachedFiles)
   }
 
@@ -68,23 +75,24 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
     */
   private def reclaim(recMsg: RecMsg) : Unit = {
     if (cache.get(recMsg.fileName).isEmpty) {
-      println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    \033[32mserver reclaims ${recMsg.fileName} but it's not in client $clientId\033[0m")
+      println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : \033[31mserver reclaims ${recMsg.fileName} but it's not in client $clientId\033[0m")
       return
     }
     val timestamp = cache(recMsg.fileName).timestamp
     val requiredTimestamp = recMsg.timestamp
     //val currenttime = System.currentTimeMillis()
+    val modifiedCount = cache(recMsg.fileName).modifiedTimes
     if (timestamp < requiredTimestamp || cache(recMsg.fileName).used == false) {
       // In this situation, it is already expired, clean directly
       // or application using this lease has released, but is still cached in lock client
       // cache.put(recMsg.fileName, new LeaseCondition(0, false))
       println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    Server reclaim ${recMsg.fileName} on client $clientId success")
       cache.remove(recMsg.fileName)
-      sender() ! new AckMsg(clientId, recMsg.fileName, System.currentTimeMillis(), true)
+      sender() ! new RecAckMsg(clientId, recMsg.fileName, modifiedCount, System.currentTimeMillis(), true)
     } else  {
       // in this case, application is still using the lease
       println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    Server reclaim ${recMsg.fileName} on client $clientId fail")
-      sender() ! new AckMsg(clientId, recMsg.fileName, System.currentTimeMillis(), false)
+      sender() ! new RecAckMsg(clientId, recMsg.fileName, modifiedCount, System.currentTimeMillis(), false)
     }
   }
 
@@ -104,15 +112,16 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
         val future = ask(s, Acquire(new AcqMsg(fileName, clientId, System.currentTimeMillis())))
         val done = Await.result(future, timeout.duration).asInstanceOf[AckMsg]
         if (done.result == true) {
-          // if server agrees the lease, update its cache
-          // TODO: provide API to emulate App operations and useLease?
-          cache.put(fileName, new LeaseCondition(done.timestamp, true))
+          // if server grants the lease, insert lease into cache
+          cache.put(fileName, new LeaseCondition(done.timestamp, true, 0))
           println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId acquire $fileName lease success")
         } else {
           println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId acquire $fileName lease failed")
         }
       } catch  {
-        case timeout: TimeoutException => println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    " + s"\033[31mclient $clientId timeout\033[0m" + s": ask for $fileName's lease")
+        case timeout: TimeoutException => {
+          println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    " + s"\033[33mclient $clientId timeout\033[0m" + s": ask for $fileName's lease")
+        }
         case e: Exception => {
           e.printStackTrace()
           println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId unknown exception")
@@ -126,28 +135,36 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
     *
     * @param fileName
     */
-  private def renewLease(fileName: String) = {
+  private def renewLease(fileName: String) : Boolean= {
     // use ask pattern, same reason as above
     if (cache.get(fileName).isDefined) {
-      val renMsg = new RenMsg(fileName, clientId, timeStep)
+      val renMsg = new RenMsg(fileName, clientId, timeStep, cache(fileName).modifiedTimes)
       try {
         val future = ask(server, Renew(renMsg))
         val done = Await.result(future, timeout.duration).asInstanceOf[AckMsg]
         if (done.result == true) {
-          cache.put(done.fileName, new LeaseCondition(done.timestamp, false))
+          val origModifiedTime = cache(fileName).modifiedTimes
+          cache.put(done.fileName, new LeaseCondition(done.timestamp, false, origModifiedTime))
           println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId renew success")
+          return true
         } else {
           println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId renew failed")
+          return false
         }
       } catch {
-        case timeout : TimeoutException => println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    " + s"\033[31mclient $clientId timeout\033[0m" + s": renew $fileName's lease")
+        case timeout : TimeoutException => {
+          println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    " + s"\033[33mclient $clientId timeout\033[0m" + s": renew $fileName's lease")
+          return false
+        }
         case e: Exception => {
           e.printStackTrace()
           println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId unknown exception")
+          return false
         }
       }
     } else {
-      println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId wants to renew $fileName which is not belong to it")
+      println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : \033[31mError! client $clientId wants to renew $fileName which is not belong to it\033[0m")
+      return false
     }
   }
 
@@ -175,7 +192,6 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
   private def appAskLease(fileName: String): Unit = {
     // if the lease is in the cache: expired or not; but no other clients(apps) ask for it
     println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : Application $clientId asks for $fileName lease")
-
     if (cache.get(fileName).isDefined) {
       // if lease expired, renew it
       if (cache.get(fileName).get.timestamp < System.currentTimeMillis()) {
@@ -186,16 +202,22 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
     }
     // client doesn't cache the lease, acquire it from server
     else {
+      //println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : Application $clientId ask $fileName lease: acqLease")
       acqLease(fileName)
     }
 
     // if get the lease success
     if (cache.get(fileName).isDefined && cache.get(fileName).get.timestamp > System.currentTimeMillis()) {
       cache.get(fileName).get.used = true
+      cache(fileName).modifiedTimes += 1
       println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : Application $clientId asks for $fileName lease success")
-      //TODO: may add some code to auto release lease
+      // Caution: After get the lease, app holds this lease for a random period, and then lease
+      val timeLength = (scala.util.Random.nextInt(30) + 1) * 100
+      context.system.scheduler.scheduleOnce(timeLength.millis, self, ReleaseLease(fileName))
     } else {
+      val timeLength = 1000
       println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : Application $clientId asks for $fileName lease fail")
+      context.system.scheduler.scheduleOnce(timeLength.millis, self, AskLease(fileName))
     }
   }
 }

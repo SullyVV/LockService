@@ -8,7 +8,7 @@ case class Command() extends AppServiceAPI
 case class ViewClient(endpoints: Seq[ActorRef]) extends AppServiceAPI
 case class View(endpoints: Seq[ActorRef]) extends AppServiceAPI
 case class AskLease(file: String) extends AppServiceAPI
-case class Init() extends AppServiceAPI
+case class Init(fileNum: Int) extends AppServiceAPI
 case class ViewServer(server: ActorRef) extends AppServiceAPI
 case class Acquire(message: AcqMsg) extends AppServiceAPI
 case class Renew(renew: RenMsg) extends AppServiceAPI

@@ -33,6 +33,10 @@ object TestHarness {
 //    val done = Await.result(future, timeout.duration)
 //  }
   val clientNum = 5
+  val fileNum = 5
+  val fileVector = for (i <- 0 until fileNum)
+    yield "file" + i
+
   val system = ActorSystem("Rings")
   implicit val timeout = Timeout(60 seconds)
   val lockServer = system.actorOf(LockServer.props(10000), "lockServer")
@@ -43,18 +47,18 @@ object TestHarness {
   /***
     * Set two schedulers, one for clients auto check; another one for server check
     */
-  for (i <- 0 until clientNum) {
-    system.scheduler.schedule(3 seconds, 5 seconds, lockClients(i), RenewCheck())
-  }
-  //system.scheduler.schedule(10 seconds, 10 seconds, lockServer, Check())
+//  for (i <- 0 until clientNum) {
+//    system.scheduler.schedule(3 seconds, 5 seconds, lockClients(i), RenewCheck())
+//  }
+  //system.scheduler.schedule(4 seconds, 10 seconds, lockServer, Check())
 
   def main(args: Array[String]): Unit = run()
 
   def run(): Unit = {
     lockServer ! ViewClient(lockClients)
-    lockServer ! Init()
-
-    /**
+    lockServer ! Init(fileNum)
+    Thread.sleep(50)
+    /***
       * Simulate App's Operations
       * lockClients ! AskLease(fileName)
       * lockClients ! ReleaseLease(fileName)
@@ -62,35 +66,64 @@ object TestHarness {
       * lockServer ! Disconnect(clientId, timeLength)
       */
 
-    lockClients(0) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file2")
-    Thread.sleep(50)
-    lockServer ! Disconnect(1, 5000)
-    Thread.sleep(50)
-    lockClients(1) ! ReleaseLease("file2")
-    Thread.sleep(50)
-    lockClients(0) ! AskLease("file2")
+    lockClients(0) ! AskLease("file0")
     Thread.sleep(50)
     lockClients(1) ! AskLease("file1")
-//    Thread.sleep(5000)
-//    lockClients(0) ! ReleaseLease("file1")
-//    lockClients(0) ! AskLease("file2")
-//    Thread.sleep(2000)
-//
-//    lockClients(0) ! AskLease("file1")
-//    Thread.sleep(3000)
-//
-//    lockClients(1) ! AskLease("file1")
-
-
+    Thread.sleep(50)
+    lockClients(0) ! AskLease("file1")
+    Thread.sleep(50)
+    lockClients(1) ! AskLease("file0")
+    Thread.sleep(50)
+    lockClients(1) ! AskLease("file1")
+    Thread.sleep(50)
+    lockClients(1) ! AskLease("file1")
+    Thread.sleep(50)
+    lockClients(0) ! AskLease("file1")
+    Thread.sleep(50)
+    lockClients(1) ! AskLease("file0")
+    Thread.sleep(50)
+    lockClients(1) ! AskLease("file1")
+    Thread.sleep(50)
+    lockClients(1) ! AskLease("file1")
+    Thread.sleep(50)
+    lockClients(0) ! AskLease("file1")
+    Thread.sleep(50)
+    lockClients(1) ! AskLease("file0")
+    Thread.sleep(50)
+    lockClients(1) ! AskLease("file1")
+    Thread.sleep(50)
+    lockClients(0) ! AskLease("file1")
+    Thread.sleep(50)
+    lockClients(1) ! AskLease("file0")
+    Thread.sleep(50)
+    lockClients(1) ! AskLease("file1")
+    Thread.sleep(50)
+    lockClients(1) ! AskLease("file0")
+    Thread.sleep(50)
+    lockClients(1) ! AskLease("file1")
+    Thread.sleep(50)
+    lockClients(1) ! AskLease("file1")
+    Thread.sleep(50)
+    lockClients(0) ! AskLease("file1")
+    Thread.sleep(50)
+    lockClients(1) ! AskLease("file0")
+    Thread.sleep(5000)
     try {
       val future = ask(lockServer, Check())
-      val checkReport = Await.result(future, 60 second).asInstanceOf[AckMsg]
+      val checkReport = Await.result(future, 60 second).asInstanceOf[scala.collection.mutable.HashMap[String, Int]]
+      checkReport.foreach((pair: (String, Int)) => {
+        println(s"${pair._1} = ${pair._2}")
+      })
     } catch {
       case e : Exception => e.printStackTrace()
     }
 
     system.shutdown()
+  }
+
+  def quitProcess(): Unit = {
+    for (i <- 0 until fileNum) {
+      fileVector(i)
+    }
   }
 }
