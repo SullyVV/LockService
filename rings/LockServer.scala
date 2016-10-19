@@ -52,11 +52,9 @@ class LockServer ( var T: Long) extends Actor {
       clientsTable = Some(e)
   }
 
-  //TODO: clients auto renew check time
-  //TODO: retry file
-
-
-
+  /***
+    * Server check mutual exclusive
+    */
   private def check(): Unit = {
     // in this function we check every lease periodcally, if expires, we update our leaseTable and reclaim the lease from client
     // use scheduler
@@ -77,9 +75,9 @@ class LockServer ( var T: Long) extends Actor {
     sender() ! new AckMsg(-1, "-1", 0L, true)
   }
 
-  /**
-    * store all files in leaseTable
-    * mark unused lease as (-1, 0) <==> (ownership, timestamp)
+  /***
+    * Store all files in leaseTable
+    * Mark unused lease as (-1, 0) <==> (ownership, timestamp)
     */
   private def init() = {
     // init 1 file for test use
@@ -91,6 +89,11 @@ class LockServer ( var T: Long) extends Actor {
     // println("init finished")
   }
 
+
+  /***
+    * Server assign lease to the requested client (check availability)
+    * @param acqMsg
+    */
   private def assign(acqMsg: AcqMsg): Unit = {
     if (disconnectTable.contains(acqMsg.clientId)) {
       return
@@ -131,13 +134,16 @@ class LockServer ( var T: Long) extends Actor {
     }
   }
 
+  /***
+    * Server renews the requested lease
+    * @param msg
+    */
   private def renew(msg: RenMsg): Unit  = {
     if (disconnectTable.contains(msg.clientId)) {
       return
     }
     // when a renew request coming in, server update file's lease and ack true
     if (leaseTable(msg.fileName).clientId == msg.clientId) {
-      // Caution: leaseTable(msg.fileName).timestamp = currentTime + msg.T?
       leaseTable(msg.fileName).timestamp += msg.T
       sender() ! new AckMsg(-1, msg.fileName, leaseTable(msg.fileName).timestamp, true)
     } else {
@@ -146,12 +152,21 @@ class LockServer ( var T: Long) extends Actor {
     }
   }
 
+  /***
+    * Simulate a disconnection between server and the specific client, ignore all messages
+    * @param clientId
+    * @param timeLength
+    */
   private def disconnect(clientId: Int, timeLength: Long): Unit = {
     disconnectTable.put(clientId, System.currentTimeMillis() + timeLength)
     println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId disconnected!")
     context.system.scheduler.scheduleOnce(timeLength.millis, self, Reconnect(clientId))
   }
 
+  /***
+    * Auto called by disconnect, used to reconnect the client
+    * @param clientId
+    */
   private def reconnect(clientId: Int): Unit = {
     disconnectTable.remove(clientId)
     println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId reconnected!")

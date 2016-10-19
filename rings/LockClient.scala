@@ -63,6 +63,7 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
 
   /***
     * Server calls back lease
+    *
     * @param recMsg
     */
   private def reclaim(recMsg: RecMsg) : Unit = {
@@ -87,6 +88,7 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
 
   /***
     * Application calls client to acquire the specific file lease
+    *
     * @param fileName
     */
   private def acqLease(fileName: String) {
@@ -119,6 +121,7 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
 
   /**
     * Client renews lease
+    *
     * @param fileName
     */
   private def renewLease(fileName: String) = {
@@ -148,6 +151,7 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
 
   /**
     * Simulate application releases its lease
+    *
     * @param fileName
     */
   private def appReleaseLease(fileName: String) = {
@@ -162,22 +166,25 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
 
   /**
     * Simulate application asks for lease
+    *
     * @param fileName
     */
   private def appAskLease(fileName: String): Unit = {
     // if the lease is in the cache: expired or not; but no other clients(apps) ask for it
     println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : Application $clientId asks for $fileName lease")
-    if (cache.get(fileName).isDefined) {
-      // if lease expired, renew it
-      if (cache.get(fileName).get.timestamp < System.currentTimeMillis()) {
-        renewLease(fileName)
-      } else {
-        println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : Application $clientId find $fileName lease in Cache")
+    while (!(cache.get(fileName).isDefined && cache.get(fileName).get.timestamp > System.currentTimeMillis())) {
+      if (cache.get(fileName).isDefined) {
+        // if lease expired, renew it
+        if (cache.get(fileName).get.timestamp < System.currentTimeMillis()) {
+          renewLease(fileName)
+        } else {
+          println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : Application $clientId find $fileName lease in Cache")
+        }
       }
-    }
-    // client doesn't cache the lease, acquire it from server
-    else {
-      acqLease(fileName)
+      // client doesn't cache the lease, acquire it from server
+      else {
+        acqLease(fileName)
+      }
     }
     // if get the lease success
     if (cache.get(fileName).isDefined && cache.get(fileName).get.timestamp > System.currentTimeMillis()) {
