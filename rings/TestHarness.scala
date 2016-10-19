@@ -1,13 +1,12 @@
 package rings
 
 import scala.concurrent.duration._
-import scala.concurrent.Await
-
-import akka.actor.{Actor, ActorSystem, ActorRef, Props}
+import scala.concurrent.{Await, ExecutionContext}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.event.Logging
 import akka.pattern.ask
 import akka.util.Timeout
-
+import ExecutionContext.Implicits.global
 
 object TestHarness {
 //  val system = ActorSystem("Rings")
@@ -33,14 +32,17 @@ object TestHarness {
 //    val future = ask(master, Join()).mapTo[Stats]
 //    val done = Await.result(future, timeout.duration)
 //  }
+  val clientNum = 2
     val system = ActorSystem("Rings")
-    implicit val timeout = Timeout(5 seconds)
+    implicit val timeout = Timeout(60 seconds)
     val lockServer = system.actorOf(LockServer.props(10000), "lockServer")
 
-    val lockClients = for (i <- 0 until 2)
+    val lockClients = for (i <- 0 until clientNum)
       yield system.actorOf(LockClient.props(i, lockServer, 10000), "lockClient" + i)
 
-
+    for (i <- 0 until clientNum) {
+      system.scheduler.schedule(3 seconds, 5 seconds, lockClients(i), RenewCheck())
+    }
     def main(args: Array[String]): Unit = run()
 
     def run(): Unit = {
@@ -51,6 +53,7 @@ object TestHarness {
         * Simulate App's Operations
         * lockClients ! AskLease(fileName)
         * lockClients ! ReleaseLease(fileName)
+        * lockClients ! AppRenew(fileName)
         *
         * lockServer ! Disconnect(clientId, timeLength)
         */
@@ -62,10 +65,18 @@ object TestHarness {
       Thread.sleep(5000)
       lockClients(0) ! ReleaseLease("file1")
       Thread.sleep(2000)
-      lockClients(0) ! AskLease("file1")
-      Thread.sleep(2000)
-      lockClients(1) ! AskLease("file1")
 
+      lockClients(0) ! AskLease("file1")
+      Thread.sleep(3000)
+
+      lockClients(1) ! AskLease("file1")
+//      try {
+//        val future = ask(lockServer, Check())
+//        val checkReport = Await.result(future, 60 second).asInstanceOf[AckMsg]
+//      } catch {
+//        case e : Exception => e.printStackTrace()
+//      }
+      //Thread.sleep(2000)
       system.shutdown()
     }
 }

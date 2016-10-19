@@ -30,9 +30,9 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
       appAskLease(file)
     case ReleaseLease(file) =>
       appReleaseLease(file)
-    case AppRenew(file) =>
-      appRenewLease(file)
 
+    case RenewCheck() =>
+      renewCheck()
     case ReportLease() =>
       reportLease()
     case Reclaim(msg) =>
@@ -40,11 +40,31 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
       reclaim(msg)
   }
 
+  /***
+    * Send back cached files list to server for mutual exclusion checking
+    */
   private def reportLease(): Unit = {
     val cachedFiles = cache.keySet
     sender() ! new ReportMsg(clientId, cachedFiles)
   }
 
+  /***
+    * Check cached leases, if remaining time less than 20% and still in use, renew the lease
+    */
+  private def renewCheck(): Unit = {
+    cache.foreach((lease: (String, LeaseCondition)) => {
+      // remaining time less than 20%
+      if (lease._2.used && lease._2.timestamp > System.currentTimeMillis() && lease._2.timestamp - System.currentTimeMillis() <= 2000) {
+        println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    client $clientId auto renew ${lease._1} lease")
+        renewLease(lease._1)
+      }
+    })
+  }
+
+  /***
+    * Server calls back lease
+    * @param recMsg
+    */
   private def reclaim(recMsg: RecMsg) : Unit = {
     if (cache.get(recMsg.fileName).isEmpty) {
       println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} :    \033[32mserver reclaims ${recMsg.fileName} but it's not in client $clientId\033[0m")
@@ -65,6 +85,10 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
     }
   }
 
+  /***
+    * Application calls client to acquire the specific file lease
+    * @param fileName
+    */
   private def acqLease(fileName: String) {
     // use ask here, because we must hold and wait until we really get the lease
     val s = server
@@ -94,8 +118,7 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
   }
 
   /**
-    * client renews lease
-    *
+    * Client renews lease
     * @param fileName
     */
   private def renewLease(fileName: String) = {
@@ -124,8 +147,7 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
   }
 
   /**
-    * simulate application releases its lease
-    *
+    * Simulate application releases its lease
     * @param fileName
     */
   private def appReleaseLease(fileName: String) = {
@@ -139,8 +161,7 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
   }
 
   /**
-    * simulate application asks for lease
-    *
+    * Simulate application asks for lease
     * @param fileName
     */
   private def appAskLease(fileName: String): Unit = {
@@ -165,12 +186,6 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
       //TODO: may add some code to auto release lease
     } else {
       println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : Application $clientId asks for $fileName lease fail")
-    }
-  }
-
-  private def appRenewLease(fileName : String): Unit = {
-    if (cache.get(fileName).isDefined) {
-      renewLease(fileName)
     }
   }
 }

@@ -46,9 +46,16 @@ class LockServer ( var T: Long) extends Actor {
       disconnect(clientID, timeLength)
     case Reconnect(clientId) =>
       reconnect(clientId)
+    case Check() =>
+      check()
     case ViewClient(e) =>
       clientsTable = Some(e)
   }
+
+  //TODO: clients auto renew check time
+  //TODO: retry file
+
+
 
   private def check(): Unit = {
     // in this function we check every lease periodcally, if expires, we update our leaseTable and reclaim the lease from client
@@ -66,6 +73,8 @@ class LockServer ( var T: Long) extends Actor {
         }
       })
     }
+    //println("finsh check")
+    sender() ! new AckMsg(-1, "-1", 0L, true)
   }
 
   /**
