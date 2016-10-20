@@ -2,28 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ad23c580-8132-468f-ad17-ad9adf4e59b1" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/TestHarness$$anonfun$run$1.class" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/TestHarness$$anonfun$run$2.class" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/AppServiceAPI.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/AppServiceAPI.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/KVAppService$$anonfun$1.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/KVAppService$$anonfun$1.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/KVAppService$$anonfun$2.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/KVAppService$$anonfun$2.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/KVAppService$$anonfun$apply$1.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/KVAppService$$anonfun$apply$1.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/KVAppService$.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/KVAppService$.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient$$anonfun$receive$1.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient$$anonfun$receive$1.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient$$anonfun$rings$LockClient$$renewCheck$1.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient$$anonfun$rings$LockClient$$renewCheck$1.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient$.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient$.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/LockClient.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/Release$.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/Release$.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/Release.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/Release.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/ReportLease$.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/ReportLease$.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/ReportLease.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/ReportLease.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/Test$.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/Test$.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/Test.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/Test.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/TestHarness$$anonfun$quitProcess$1.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/TestHarness$$anonfun$quitProcess$1.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/scala-2.11/classes/rings/TestHarness$.class" afterPath="$PROJECT_DIR$/target/scala-2.11/classes/rings/TestHarness$.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/KVAppService.scala" afterPath="$PROJECT_DIR$/KVAppService.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/LockClient.scala" afterPath="$PROJECT_DIR$/LockClient.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/TestHarness.scala" afterPath="$PROJECT_DIR$/TestHarness.scala" />
     </list>
     <ignored path="rings.iws" />
@@ -76,8 +54,8 @@
       <file leaf-file-name="TestHarness.scala" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/TestHarness.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="221">
-              <caret line="109" column="7" selection-start-line="109" selection-start-column="7" selection-end-line="109" selection-end-column="7" />
+            <state relative-caret-position="-283">
+              <caret line="85" column="27" selection-start-line="85" selection-start-column="8" selection-end-line="85" selection-end-column="27" />
               <folding>
                 <element signature="e#15#49#0" expanded="true" />
               </folding>
@@ -608,7 +586,7 @@
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="SBT Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3270366" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3266042" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="SBT" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32956383" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -1026,8 +1004,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/TestHarness.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="109" column="7" selection-start-line="109" selection-start-column="7" selection-end-line="109" selection-end-column="7" />
+        <state relative-caret-position="-283">
+          <caret line="85" column="27" selection-start-line="85" selection-start-column="8" selection-end-line="85" selection-end-column="27" />
           <folding>
             <element signature="e#15#49#0" expanded="true" />
           </folding>

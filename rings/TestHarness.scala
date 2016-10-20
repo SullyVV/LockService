@@ -66,64 +66,61 @@ object TestHarness {
       */
 
     /***
-      * For Basic Function Test use
+      * For Basic Function Test and disconnection Test
       */
-    lockClients(0) ! AskLease("file1")
-    Thread.sleep(50)
-    lockServer ! Disconnect(0, 1000)
-    Thread.sleep(500)
-    lockClients(1) ! AskLease("file1")
-    Thread.sleep(500)
-    lockClients(1) ! AskLease("file1")
-    Thread.sleep(1000)
-    lockClients(1) ! AskLease("file1")
-    Thread.sleep(50)
-    lockClients(0) ! ReleaseLease("file1")
-    Thread.sleep(50)
-    lockClients(1) ! AskLease("file1")
-    Thread.sleep(50)
+//    lockClients(0) ! AskLease("file1")
+//    Thread.sleep(50)
+//    lockServer ! Disconnect(0, 1000)
+//    Thread.sleep(500)
+//    lockClients(1) ! AskLease("file1")
+//    Thread.sleep(500)
+//    lockClients(1) ! AskLease("file1")
+//    Thread.sleep(1000)
+//    lockClients(1) ! AskLease("file1")
+//    Thread.sleep(50)
+//    lockClients(0) ! ReleaseLease("file1")
+//    Thread.sleep(50)
+//    lockClients(1) ! AskLease("file1")
+//    Thread.sleep(50)
     /***
       * For Random test use
       */
-    //    val loopNum = 20
-//    for (i <- 0 until loopNum) {
-//      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
-//      Thread.sleep(500)
-//      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
-//      Thread.sleep(500)
-//      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
-//      Thread.sleep(500)
-//      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
-//      Thread.sleep(500)
-//      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
-//      Thread.sleep(500)
-//      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
-//      Thread.sleep(500)
-//      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
-//      Thread.sleep(500)
-//      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
-//      Thread.sleep(500)
-//      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
-//      Thread.sleep(500)
-//      lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
-//      Thread.sleep(500)
-//    }
-////    for (i <- 0 until clientNum) {
-////      val future = ask(lockClients(i), isIdle())
-////      val checkReport = Await.result(future, 60 second).asInstanceOf[scala.collection.mutable.HashMap[String, Int]]
-////    }
-//    var totalCall = 0
-//    try {
-//      val future = ask(lockServer, Check())
-//      val checkReport = Await.result(future, 60 second).asInstanceOf[scala.collection.mutable.HashMap[String, Int]]
-//      checkReport.foreach((pair: (String, Int)) => {
-//        totalCall += pair._2
-//        println(s"${pair._1} = ${pair._2}")
-//      })
-//    } catch {
-//      case e : Exception => e.printStackTrace()
-//    }
-//    println(s"totalCall = $totalCall")
+        val loopNum = 10
+        for (i <- 0 until loopNum) {
+          lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+          Thread.sleep(500)
+          lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+          Thread.sleep(500)
+          lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+          Thread.sleep(500)
+          lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+          Thread.sleep(500)
+          lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+          Thread.sleep(500)
+          lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+          Thread.sleep(500)
+          lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+          Thread.sleep(500)
+          lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+          Thread.sleep(500)
+          lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+          Thread.sleep(500)
+          lockClients(rand.nextInt(clientNum)) ! AskLease(fileVector(rand.nextInt(fileNum)))
+          Thread.sleep(5000)
+        }
+        var totalCall = 0
+        try {
+          val future = ask(lockServer, Check())
+          val checkReport = Await.result(future, 60 second).asInstanceOf[scala.collection.mutable.HashMap[String, Int]]
+          checkReport.foreach((pair: (String, Int)) => {
+            totalCall += pair._2
+            println(s"${pair._1} = ${pair._2}")
+          })
+        } catch {
+          case e : Exception => e.printStackTrace()
+        }
+        println(s"totalCall = $totalCall")
+
     system.shutdown()
     system.awaitTermination()
   }
