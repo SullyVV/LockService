@@ -43,8 +43,19 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
     case ReportLease(file) =>
       reportLease(file)
     case Reclaim(msg) =>
-      // server calls clients
       reclaim(msg)
+    case IsIdle() =>
+      isIdle()
+  }
+
+  /***
+    * Check if the client is idle
+    */
+  private def isIdle(): Unit = {
+//    sender() ! LocalActorRef
+//    var context = Context as ActorCell;
+//    if (context == null)
+//      return;
   }
 
   /***
@@ -170,7 +181,7 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
         }
       }
     } else {
-      println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : \033[31mError! client $clientId wants to renew $fileName which is not belong to it\033[0m")
+      println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : \033[31mError! client $clientId wants to renew $fileName which does not belong to it\033[0m")
       return false
     }
   }
@@ -187,7 +198,7 @@ class LockClient (val clientId: Int, serve: ActorRef, var timeStep: Long) extend
       cache(fileName).used = false
     } else {
       //fixme: for test use: random release will invoke below print
-      //println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : \033[32mApplication on client $clientId wants to release $fileName's lease which is not belong to it\033[0m")
+      //println(s"${dateFormat.format(new Date(System.currentTimeMillis()))} : \033[31mApplication on client $clientId wants to release $fileName's lease which does not belong to it\033[0m")
     }
   }
 
